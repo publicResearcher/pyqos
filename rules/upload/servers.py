@@ -4,13 +4,13 @@
 
 from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
-from built_in_classes import PFIFO_class, SFQ_class, Basic_tc_class
+from built_in_classes import PFIFOClass, SFQClass, BasicHTBClass
 
 UPLOAD = INTERFACES["gre-home"]["speed"]
 MIN_UPLOAD = UPLOAD/10
 
 
-class Interactive(PFIFO_class):
+class Interactive(PFIFOClass):
     """
     Interactive Class, for low latency, high priority packets such as VOIP and
     DNS.
@@ -26,7 +26,7 @@ class Interactive(PFIFO_class):
     cburst = cburst_formula(rate, burst)
 
 
-class OpenVPN(SFQ_class):
+class OpenVPN(SFQClass):
     """
     Class for openvpn.
 
@@ -41,7 +41,7 @@ class OpenVPN(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class TCP_ack(SFQ_class):
+class TCP_ack(SFQClass):
     """
     Class for TCP ACK.
 
@@ -57,7 +57,7 @@ class TCP_ack(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class IRC(SFQ_class):
+class IRC(SFQClass):
     """
     Class for IRC or services that doesn't need a lot of bandwidth but have to
     be quick.
@@ -73,7 +73,7 @@ class IRC(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class Downloads(SFQ_class):
+class Downloads(SFQClass):
     """
     Class for torrents and direct downloads
 
@@ -89,7 +89,7 @@ class Downloads(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class Default(SFQ_class):
+class Default(SFQClass):
     """
     Default class
 
@@ -104,7 +104,7 @@ class Default(SFQ_class):
     cburst = cburst_formula(rate, burst)
 
 
-class Main(Basic_tc_class):
+class Main(BasicHTBClass):
     classid = "1:12"
     rate = MIN_UPLOAD
     ceil = UPLOAD
