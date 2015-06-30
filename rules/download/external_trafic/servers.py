@@ -4,7 +4,7 @@
 
 from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
-from built_in_classes import PFIFOClass, SFQClass, BasicHTBClass
+from built_in_classes import FQCodelClass, PFIFOClass, BasicHTBClass
 
 DOWNLOAD = INTERFACES["lan_if"]["speed"]
 MIN_DOWNLOAD = DOWNLOAD/10
@@ -27,11 +27,11 @@ class Interactive(PFIFOClass):
     cburst = cburst_formula(rate, burst)
 
 
-class OpenVPN(SFQClass):
+class OpenVPN(FQCodelClass):
     """
     Class for openvpn.
 
-    We want openvpn to be fast. Uses htb then sfq.
+    We want openvpn to be fast. Uses htb then fq-codel.
     """
     classid = "1:215"
     prio = 15
@@ -40,14 +40,16 @@ class OpenVPN(SFQClass):
     ceil = UPLOAD * 2
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class TCP_ack(SFQClass):
+class TCP_ack(FQCodelClass):
     """
     Class for TCP ACK.
 
-    It's important to let the ACKs leave the network as fast
-    as possible when a host of the network is downloading. Uses htb then sfq.
+    It's important to let the ACKs leave the network as fast as possible when a
+    host of the network is downloading. Uses htb then fq-codel.
     """
     classid = "1:220"
     prio = 20
@@ -56,14 +58,16 @@ class TCP_ack(SFQClass):
     ceil = DOWNLOAD / 10
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class IRC(SFQClass):
+class IRC(FQCodelClass):
     """
     Class for IRC or services that doesn't need a lot of bandwidth but have to
     be quick.
 
-    A bit low priority, htb then sfq.
+    A bit low priority, htb then fq-codel.
     """
     classid = "1:2100"
     prio = 30
@@ -72,14 +76,16 @@ class IRC(SFQClass):
     ceil = DOWNLOAD/2
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class Downloads(SFQClass):
+class Downloads(FQCodelClass):
     """
     Class for torrents and direct downloads
 
     A bit high priority, I don't want to wait for my movie :p. Uses htb then
-    sfq
+    fq-codel
     """
     classid = "1:2600"
     prio = 50
@@ -88,13 +94,15 @@ class Downloads(SFQClass):
     ceil = DOWNLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class Default(SFQClass):
+class Default(FQCodelClass):
     """
     Default class
 
-    Uses htb then sfq
+    Uses htb then fq-codel
     """
     classid = "1:2500"
     prio = 100
@@ -103,6 +111,8 @@ class Default(SFQClass):
     ceil = DOWNLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
 class Main(BasicHTBClass):

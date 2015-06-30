@@ -4,7 +4,7 @@
 
 from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
-from built_in_classes import PFIFOClass, SFQClass, BasicHTBClass
+from built_in_classes import FQCodelClass, PFIFOClass, BasicHTBClass
 
 GRE_UPLOAD = INTERFACES["gre_online"]["speed"]
 MIN_UPLOAD = GRE_UPLOAD/10
@@ -26,11 +26,11 @@ class Interactive(PFIFOClass):
     cburst = cburst_formula(rate, burst)
 
 
-class OpenVPN(SFQClass):
+class OpenVPN(FQCodelClass):
     """
     Class for openvpn.
 
-    We want openvpn to be fast. Uses htb then sfq.
+    We want openvpn to be fast. Uses htb then fq-codel.
     """
     classid = "1:215"
     prio = 15
@@ -39,14 +39,16 @@ class OpenVPN(SFQClass):
     ceil = GRE_UPLOAD
     burst = burst_formula(rate) * 2
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class TCP_ack(SFQClass):
+class TCP_ack(FQCodelClass):
     """
     Class for TCP ACK.
 
-    It's important to let the ACKs leave the network as fast
-    as possible when a host of the network is downloading. Uses htb then sfq.
+    It's important to let the ACKs leave the network as fast as possible when a
+    host of the network is downloading. Uses htb then fq-codel.
     """
     classid = "1:220"
     prio = 20
@@ -55,14 +57,16 @@ class TCP_ack(SFQClass):
     ceil = GRE_UPLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class IRC(SFQClass):
+class IRC(FQCodelClass):
     """
     Class for IRC or services that doesn't need a lot of bandwidth but have to
     be quick.
 
-    A bit low priority, htb then sfq.
+    A bit low priority, htb then fq-codel.
     """
     classid = "1:2100"
     prio = 30
@@ -71,13 +75,15 @@ class IRC(SFQClass):
     ceil = GRE_UPLOAD/5
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class Default(SFQClass):
+class Default(FQCodelClass):
     """
     Default class
 
-    Uses htb then sfq
+    Uses htb then fq-codel
     """
     classid = "1:2500"
     prio = 100
@@ -86,13 +92,15 @@ class Default(SFQClass):
     ceil = GRE_UPLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class Torrents(SFQClass):
+class Torrents(FQCodelClass):
     """
     Class for torrents
 
-    Very low priority. Uses htb then sfq
+    Very low priority. Uses htb then fq-codel
     """
     classid = "1:2600"
     prio = 150
@@ -101,6 +109,8 @@ class Torrents(SFQClass):
     ceil = GRE_UPLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
 class Main(BasicHTBClass):

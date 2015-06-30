@@ -4,7 +4,7 @@
 
 from config import INTERFACES
 from rules.qos_formulas import burst_formula, cburst_formula
-from built_in_classes import PFIFOClass, SFQClass, BasicHTBClass
+from built_in_classes import FQCodelClass, PFIFOClass, BasicHTBClass
 
 DOWNLOAD = INTERFACES["lan_if"]["speed"]
 UPLOAD = INTERFACES["public_if"]["speed"]
@@ -26,12 +26,12 @@ class Interactive(PFIFOClass):
     cburst = cburst_formula(rate, burst)
 
 
-class TCP_ack(SFQClass):
+class TCP_ack(FQCodelClass):
     """
     Class for TCP ACK.
 
     It's important to receive quickly the TCP ACK when uploading. Uses htb then
-    sfq.
+    fq-codel.
     """
     classid = "1:120"
     prio = 20
@@ -40,15 +40,17 @@ class TCP_ack(SFQClass):
     ceil = DOWNLOAD / 10
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class SSH(SFQClass):
+class SSH(FQCodelClass):
     """
     Class for SSH connections.
 
-    We want the ssh connections to be smooth !
-    SFQ will mix the packets if there are several SSH connections in parallel
-    and ensure that none has the priority
+    We want the ssh connections to be smooth !  fq-codel will mix the packets
+    if there are several SSH connections in parallel and ensure that none has
+    the priority
     """
     classid = "1:1100"
     prio = 30
@@ -57,9 +59,11 @@ class SSH(SFQClass):
     ceil = DOWNLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class HTTP(SFQClass):
+class HTTP(FQCodelClass):
     """
     Class for HTTP/HTTPS connections.
     """
@@ -70,9 +74,11 @@ class HTTP(SFQClass):
     ceil = DOWNLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
-class Default(SFQClass):
+class Default(FQCodelClass):
     """
     Default class
     """
@@ -83,6 +89,8 @@ class Default(SFQClass):
     ceil = DOWNLOAD
     burst = burst_formula(rate)
     cburst = cburst_formula(rate, burst)
+    limit = cburst
+    interval = 15
 
 
 class Main(BasicHTBClass):
